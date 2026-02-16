@@ -1,0 +1,7 @@
+
+target/
+dbt_packages/
+logs/
+
+
+local_notes.txt
