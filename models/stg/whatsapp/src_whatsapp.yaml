@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: whatsapp
+    schema: public
+    description: "Raw WhatsApp group event data ingested by the jodi-flow pipeline."
+    tables:
+      - name: raw_whatsapp_logs
+        description: "Join, leave, and added events parsed from WhatsApp .txt exports."
+        columns:
+          - name: timestamp
+            description: "Timestamp of the event as parsed from the WhatsApp export."
+            data_tests:
+              - not_null
+          - name: group_name
+            description: "WhatsApp group name derived from the export filename."
+            data_tests:
+              - not_null
+          - name: user_phone_hash
+            description: "SHA-256 hash of the user phone number or WhatsApp nickname."
+            data_tests:
+              - not_null
+          - name: event_type
+            description: "Type of group event: joined, left, or added."
+            data_tests:
+              - not_null
+              - accepted_values:
+                  values: ['joined', 'left', 'added']

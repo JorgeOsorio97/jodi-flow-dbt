@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: meta_ads
+    schema: facebook_ads
+    description: "Raw Facebook Ads data ingested by the jodi-flow pipeline."
+    tables:
+      - name: ads_insights
+        description: "Ad performance metrics and dimensions from Facebook Ads API."
