@@ -1,6 +1,6 @@
 {{
     config(
-        materialized='view'
+        materialized='table'
     )
 }}
 with src as (
@@ -19,7 +19,19 @@ select
         partition by group_name
         order by timestamp
         rows between unbounded preceding and current row
-    ) as rolling_member_count
+    ) as rolling_member_count,
+
+    timestamp = min(timestamp) over (
+        partition by group_name, cast(timestamp as date)
+        order by timestamp
+        rows between unbounded preceding and unbounded following
+    ) as is_first_event_of_day,
+
+    timestamp = max(timestamp) over (
+        partition by group_name, cast(timestamp as date)
+        order by timestamp
+        rows between unbounded preceding and unbounded following
+    ) as is_last_event_of_day
 
 from {{ source('whatsapp','raw_whatsapp_logs') }}
 )
