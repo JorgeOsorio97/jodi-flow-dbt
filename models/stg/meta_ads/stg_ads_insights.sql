@@ -1,6 +1,6 @@
 {{
     config(
-        materialized='view'
+        materialized='table'
     )
 }}
 with src as (
