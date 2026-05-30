@@ -4,72 +4,46 @@
     )
 }}
 
-with events as (
+with wa as (
 
-    select * from {{ ref('stg_whatsapp_logs') }}
-
-),
-
-latest_event as (
-
-    select
-        user_phone_hash,
-        group_name,
-        event_type,
-        timestamp,
-        row_number() over (
-            partition by user_phone_hash, group_name
-            order by timestamp desc
-        ) as rn
-    from events
+    select * from {{ ref('int_wa_members') }}
 
 ),
 
-members as (
+ghl as (
 
-    select
-        e.user_phone_hash,
-        e.group_name,
-        min(case when e.event_type in ('joined', 'added') then e.timestamp end) as joined_at,
-        max(case when e.event_type = 'left' then e.timestamp end)               as left_at,
-        le.event_type                                                            as last_event_type,
-        case
-            when le.event_type in ('joined', 'added') then 'member'
-            else 'left'
-        end                                                                      as status
-    from events e
-    inner join latest_event le
-        on  e.user_phone_hash = le.user_phone_hash
-        and e.group_name      = le.group_name
-        and le.rn = 1
-    group by
-        e.user_phone_hash,
-        e.group_name,
-        le.event_type
+    select * from {{ ref('stg_ghl_contacts') }}
 
-),
-added_statistics as (
-    select
-        user_phone_hash,
-        group_name,
-        joined_at,
-        left_at,
-        coalesce(
-            left_at,
-            current_timestamp
-        ) - joined_at as duration_in_group,
-        last_event_type,
-        status
-    from members
 )
 
 select
-    *,
+    wa.user_phone,
+    wa.user_phone_hash,
+    wa.group_name,
+    wa.joined_at,
+    wa.left_at,
+    wa.duration_in_group,
+    wa.last_event_type,
+    wa.status,
+    wa.duration_category,
+    coalesce(g.contact_id,       ng.contact_id)       as ghl_contact_id,
+    coalesce(g.first_name,       ng.first_name)       as ghl_first_name,
+    coalesce(g.last_name,        ng.last_name)        as ghl_last_name,
+    coalesce(g.email,            ng.email)            as ghl_email,
+    coalesce(g.tags,             ng.tags)             as ghl_tags,
+    coalesce(g.created_at,       ng.created_at)       as ghl_created_at,
+    coalesce(g.last_activity_at, ng.last_activity_at) as ghl_last_activity_at,
     case
-        when left_at is null then '1. Miembro activo'
-        when duration_in_group < interval '1 day' then '5. Duro menos de un día'
-        when duration_in_group < interval '1 week' then '4. Duro menos de una semana'
-        when duration_in_group < interval '1 month' then '3. Duro menos de un mes'
-        else '2. Duro más de un mes'
-    end as duration_category
-from added_statistics
+        when g.contact_id  is not null then 'phone'
+        when ng.contact_id is not null then 'name'
+    end as ghl_match_type
+from wa
+full outer join ghl g
+    on wa.normalized_phone = g.normalized_phone
+left join ghl ng
+    on  g.contact_id is null
+    and wa.user_phone is not null
+    and wa.placeholder_name is not null
+    and ng.is_unique_name
+    and (   wa.placeholder_name = ng.normalized_name_fwd
+         or wa.placeholder_name = ng.normalized_name_rev)

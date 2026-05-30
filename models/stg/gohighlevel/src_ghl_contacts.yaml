@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: gohighlevel
+    schema: gohighlevel
+    description: "GoHighLevel CRM contacts loaded via Airbyte."
+    tables:
+      - name: Contacts
+        description: "CRM contacts exported from GoHighLevel."
+        columns:
+          - name: Contact_Id
+            description: "Unique GHL contact identifier."
+          - name: First_Name
+            description: "Contact first name."
+          - name: Last_Name
+            description: "Contact last name."
+          - name: Phone
+            description: "Contact phone number (international format, e.g. +5213329186778)."
+          - name: Email
+            description: "Contact email address."
+          - name: Business_Name
+            description: "Business or company name associated with the contact."
+          - name: Created
+            description: "Timestamp when the contact was created in GHL."
+          - name: Last_Activity
+            description: "Timestamp of the most recent activity for the contact."
+          - name: Tags
+            description: "Comma-separated tags assigned to the contact in GHL."
