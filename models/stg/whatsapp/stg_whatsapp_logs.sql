@@ -1,11 +1,12 @@
 {{
     config(
-        materialized='view'
+        materialized='table'
     )
 }}
 with src as (
-select 
+select
     timestamp,
+    user_phone,
     user_phone_hash,
     group_name,
     cast(substring(group_name from '\d+') as integer) as group_number,

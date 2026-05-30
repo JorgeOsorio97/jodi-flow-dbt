@@ -16,8 +16,12 @@ sources:
             description: "WhatsApp group name derived from the export filename."
             data_tests:
               - not_null
+          - name: user_phone
+            description: "Normalized phone number or WhatsApp nickname (raw, unhashed)."
+            data_tests:
+              - not_null
           - name: user_phone_hash
-            description: "SHA-256 hash of the user phone number or WhatsApp nickname."
+            description: "First 16 hex chars of SHA-256(user_phone), computed by DB trigger."
             data_tests:
               - not_null
           - name: event_type
